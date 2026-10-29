@@ -5,8 +5,8 @@ turn-taking, barge-in and the voice; this service decides what the agent says. j
 call.
 
 Your logic goes in [`src/agent.ts`](src/agent.ts). As generated it passes each turn to an OpenAI-compatible model, has
-one tool of its own (`get_business_hours`), offers callers a person when they ask for one, transfers them when they
-press 0, and never reads a long number aloud.
+one tool of its own (`get_business_hours`), transfers callers who ask for a person (or press 0), and never reads a
+long number aloud.
 
 ## Run it locally
 
@@ -23,7 +23,7 @@ npm run dev             # ws://localhost:8080, restarts when you edit src/
 | `OPENAI_API_KEY` | | key for the model endpoint |
 | `OPENAI_BASE_URL` | `https://api.openai.com/v1` | any OpenAI-compatible chat-completions endpoint |
 | `MODEL` | `gpt-4.1-mini` | model name |
-| `OPERATOR_NUMBER` | empty | where callers who press 0 are transferred (E.164 number or `sip:` URI) |
+| `OPERATOR_NUMBER` | empty | where callers who ask for a person, or press 0, are transferred (E.164 number or `sip:` URI). Empty uses the agent's transfer destination in Agent Studio |
 | `LOG_LEVEL` | `info` | pino log level |
 
 `GET /health` answers `{"ok":true,"calls":N}` for a load balancer or container health check.

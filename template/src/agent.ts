@@ -3,9 +3,21 @@
  * everything here decides what the agent says. Each hook is optional: delete what you do not need.
  *
  * Out of the box this is a pass-through to an OpenAI-compatible model, with one tool of its own and a
- * press-0-for-a-person rule. Replace the pieces with your own logic.
+ * rule that connects callers to a person. Replace the pieces with your own logic.
  */
-import type { HarnessOptions } from '@jambonz/sdk/harness';
+import type { HarnessContext, HarnessOptions } from '@jambonz/sdk/harness';
+
+// Transfers the caller to OPERATOR_NUMBER, or without one to the transfer destination set on the agent in
+// Agent Studio. jambonz speaks the announcement first; if the transfer cannot start, the caller stays here.
+async function connectToPerson(ctx: HarnessContext): Promise<void> {
+  ctx.state.set('transfer_requested', true);
+  const to = process.env.OPERATOR_NUMBER;
+  const result = await ctx.command('transfer', { ...(to ? { to } : {}), announce: 'Connecting you to a person now.' });
+  if (!result.ok) {
+    ctx.log.warn({ error: result.error }, 'transfer failed');
+    ctx.say('Sorry, I could not connect you. How else can I help?');
+  }
+}
 
 export const agent: HarnessOptions = {
   model: process.env.MODEL ?? 'gpt-4.1-mini',
@@ -26,9 +38,9 @@ export const agent: HarnessOptions = {
   // Before each model call: routing, retrieval, gating. Return nothing to use the defaults, or change the
   // prompt, the tools offered, the model, or answer directly with `reply` and skip the model.
   beforeModel(turn, ctx) {
-    if (/\b(agent|human|person|representative)\b/i.test(turn.text) && process.env.OPERATOR_NUMBER) {
-      ctx.state.set('wantsPerson', true);
-      return { reply: 'Sure. Press zero at any time and I will connect you to a person.', route: 'offer_person' };
+    if (/\b(agent|human|person|representative)\b/i.test(turn.text)) {
+      void connectToPerson(ctx);
+      return { reply: '', route: 'transfer_to_person' };
     }
   },
 
@@ -50,19 +62,13 @@ export const agent: HarnessOptions = {
 
   // After each reply. What you add with ctx.record() is stored on the turn and shown in Studio.
   afterTurn(turn, ctx) {
-    if (ctx.state.get('wantsPerson')) ctx.record('flags', ['offered_person']);
+    if (ctx.state.get('transfer_requested')) ctx.record('flags', ['transfer_requested']);
   },
 
   // Events from jambonz: dtmf, silence, user_interruption, transfer, recording, application_update, ...
   onEvent: {
     async dtmf(event, ctx) {
-      if (event.digits !== '0' || !process.env.OPERATOR_NUMBER) return;
-      ctx.say('Connecting you to a person now.');
-      const result = await ctx.command('transfer', { to: process.env.OPERATOR_NUMBER });
-      if (!result.ok) {
-        ctx.log.warn({ error: result.error }, 'transfer failed');
-        ctx.say('Sorry, I could not connect you. How else can I help?');
-      }
+      if (event.digits === '0') await connectToPerson(ctx);
     },
   },
 

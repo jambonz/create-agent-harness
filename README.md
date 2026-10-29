@@ -15,7 +15,7 @@ Your logic goes in `src/agent.ts`. As generated, the harness:
 
 - passes each turn to an OpenAI-compatible model (any endpoint that speaks chat completions)
 - has a tool of its own (`get_business_hours`) the model can call, alongside the agent's tools from Agent Studio
-- answers "can I talk to a person" without a model call, and transfers the caller when they press 0
+- transfers a caller who asks for a person (or presses 0), without a model call
 - never reads a long number aloud
 - comes with a test that runs it against a fake jambonz (no model key needed), a Dockerfile and a health check
 

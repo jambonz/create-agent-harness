@@ -70,24 +70,23 @@ test('with a secret, a connection without it is refused', async () => {
   c.ws.close();
 });
 
-test('asking for a person is answered without the model', async () => {
-  process.env.OPERATOR_NUMBER = '+15085550100';
+test('asking for a person transfers to the agent\'s destination in Studio, without the model', async () => {
   const c = await call(await start());
   c.send('turn:start', { turn_id: 1, input: { type: 'speech', text: 'can I talk to a person', confidence: 0.9 } });
-  const first = await c.next('reply:chunk', (m) => m.turn_id === 1);
-  assert.match(await c.spoken(first.reply_id), /Press zero/);
+  const cmd = await c.next('command', (m) => m.name === 'transfer');
+  assert.deepEqual(cmd.args, { announce: 'Connecting you to a person now.' });
+  c.send('command:result', { command_id: cmd.command_id, ok: true });
   const done = await c.next('reply:done', (m) => m.turn_id === 1);
-  assert.equal(done.turn_record?.route, 'offer_person');
+  assert.equal(done.turn_record?.route, 'transfer_to_person');
   c.ws.close();
-  delete process.env.OPERATOR_NUMBER;
 });
 
-test('pressing 0 transfers to the operator number', async () => {
+test('pressing 0 transfers to OPERATOR_NUMBER when it is set', async () => {
   process.env.OPERATOR_NUMBER = '+15085550100';
   const c = await call(await start());
   c.send('event', { name: 'dtmf', digits: '0', duration_ms: 120 });
   const cmd = await c.next('command', (m) => m.name === 'transfer');
-  assert.deepEqual(cmd.args, { to: '+15085550100' });
+  assert.deepEqual(cmd.args, { to: '+15085550100', announce: 'Connecting you to a person now.' });
   c.send('command:result', { command_id: cmd.command_id, ok: true });
   c.ws.close();
   delete process.env.OPERATOR_NUMBER;
