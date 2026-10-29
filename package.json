@@ -13,13 +13,20 @@
     "test": "node --test test/*.test.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/jambonz/create-agent-harness"
   },
-  "keywords": ["jambonz", "voice", "agent", "harness", "voice-ai", "telephony"],
+  "keywords": [
+    "jambonz",
+    "voice",
+    "agent",
+    "harness",
+    "voice-ai",
+    "telephony"
+  ],
   "author": "Dave Horton",
   "license": "MIT"
 }

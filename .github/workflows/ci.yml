@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Generator tests
+        run: npm test
+
+      # What a user gets from `npm create @jambonz/agent-harness`: it installs, its tests pass and it typechecks.
+      - name: Generate a project
+        run: node bin/index.js "$RUNNER_TEMP/my-agent"
+
+      - name: Generated project
+        working-directory: ${{ runner.temp }}/my-agent
+        run: |
+          npm install --no-audit --no-fund
+          npm test
+          npm run typecheck
