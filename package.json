@@ -1,0 +1,25 @@
+{
+  "name": "@jambonz/create-agent-harness",
+  "version": "0.1.0",
+  "description": "Scaffold a custom agent harness for jambonz: your code decides what the agent says; jambonz handles the phone, speech and turn-taking",
+  "bin": {
+    "create-agent-harness": "./bin/index.js"
+  },
+  "files": [
+    "bin",
+    "template"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jambonz/create-agent-harness"
+  },
+  "keywords": ["jambonz", "voice", "agent", "harness", "voice-ai", "telephony"],
+  "author": "Dave Horton",
+  "license": "MIT"
+}
